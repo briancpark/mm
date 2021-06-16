@@ -53,14 +53,14 @@ int main (int argc, char *argv[]) {
     if (taskid == MASTER) {
         printf("mpi_mm has started with %d tasks.\n",numtasks);
         // printf("Initializing arrays...\n");
-        for (i=0; i<NRA; i++) {
-            for (j=0; j<NCA; j++) {
-                a[i][j]= i+j;
+        for (i = 0; i < NRA; i++) {
+            for (j = 0; j < NCA; j++) {
+                a[i][j] = (double) rand() / RAND_MAX * 2.0 - 1.0;
             }
         }
         for (i=0; i<NCA; i++) {
             for (j=0; j<NCB; j++) {
-                b[i][j]= i*j;
+                b[i][j] = (double) rand() / RAND_MAX * 2.0 - 1.0;
             }
         }
 
@@ -122,8 +122,9 @@ int main (int argc, char *argv[]) {
         for (k=0; k<NCB; k++) {
             for (i=0; i<rows; i++) {
                 c[i][k] = 0.0;
-                for (j=0; j<NCA; j++)
-                c[i][k] = c[i][k] + a[i][j] * b[j][k];
+                for (j=0; j<NCA; j++) {
+                    c[i][k] = c[i][k] + a[i][j] * b[j][k];
+                }
             }
         }
         mtype = FROM_WORKER;
