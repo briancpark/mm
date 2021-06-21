@@ -1,5 +1,3 @@
-//Source: https://github.com/JGU-HPC/parallelprogrammingbook/blob/master/chapter9/matrix_matrix_mult/summa.cpp
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -7,6 +5,11 @@
 #include <math.h>
 #include "mpi.h"
 #include <omp.h>
+
+/*
+ * Source: https://github.com/JGU-HPC/parallelprogrammingbook/blob/master/chapter9/matrix_matrix_mult/summa.cpp
+ */
+
 
 void readInput(int rows, int cols, double *data){
 
@@ -52,6 +55,27 @@ void printOutput(int rows, int cols, double *data){
     */
 }
 
+void SimpleDGEMM(double *Atemp, double *Btemp, double *myC, int row, int col, int inner) {
+    size_t blocksize = 32;
+
+    //#pragma omp parallel for num_threads(4)
+    for (size_t i_blocked = 0; i_blocked < row; i_blocked += blocksize) {
+        for (size_t j_blocked = 0; j_blocked < col; j_blocked += blocksize) {
+            for (size_t k_blocked = 0; k_blocked < inner; k_blocked += blocksize) {
+
+                for (size_t i = i_blocked; i < (i_blocked + blocksize) && i < row; i++) {
+                    for (size_t j = j_blocked; j < (j_blocked + blocksize) && j < col; j++) {
+                        for (size_t k = k_blocked; k < (k_blocked + blocksize) && k < inner; k++) {   
+                            myC[i * inner + j] += Atemp[i * row + k] * Btemp[k * col + j];
+                        }
+                    }
+                }
+
+            }
+        }
+    }
+}
+
 int main (int argc, char *argv[]){
 	// Initialize MPI
 	MPI::Init(argc, argv);
@@ -76,7 +100,7 @@ int main (int argc, char *argv[]){
 
     int p_c = sqrt(p);
     // Check if a square grid could be created
-    if(p_c*p_c != p){
+    if(p_c * p_c != p){
 		// Only the first process prints the output message
 		if(!rank) {
 			std::cout << "ERROR: The number of processes must be square" << std::endl;
@@ -84,19 +108,18 @@ int main (int argc, char *argv[]){
 		MPI::COMM_WORLD.Abort(1);
     }
 
-	if((m%p_c) || (n%p_c) || (k%p_c)){
+	if((m % p_c) || (n % p_c) || (k % p_c)){
 		// Only the first process prints the output message
 		if(!rank) {
-			std::cout << "ERROR: 'm', 'k' and 'n' must be multiple of sqrt(numP)" << std::endl;
+			std::cout << "ERROR: 'm', 'k' and 'n' must be multiple of sqrt(p)" << std::endl;
         }
 		MPI::COMM_WORLD.Abort(1);
 	}
 
-	if((m < 1) || (n < 1) || (k<1)){
+	if((m < 1) || (n < 1) || (k < 1)){
 		// Only the first process prints the output message
 		if(!rank)
 			std::cout << "ERROR: 'm', 'k' and 'n' must be higher than 0" << std::endl;
-		
 		MPI::COMM_WORLD.Abort(1);
 	}
 
@@ -106,9 +129,9 @@ int main (int argc, char *argv[]){
 
 	// Only one process reads the data from the files and broadcasts the data
 	if(!rank){
-		A = new double[m*k];
+		A = new double[m * k];
 		readInput(m, k, A);
-		B = new double[k*n];
+		B = new double[k * n];
 		readInput(k, n, B);
 		C = new double[m*n];
 	}
@@ -122,7 +145,9 @@ int main (int argc, char *argv[]){
 	MPI::Datatype blockAType = MPI::DOUBLE.Create_vector(blockRowsA, blockRowsB, k);
 	MPI::Datatype blockBType = MPI::DOUBLE.Create_vector(blockRowsB, blockColsB, n);
 	MPI::Datatype blockCType = MPI::DOUBLE.Create_vector(blockRowsA, blockColsB, n);
-	blockAType.Commit(); blockBType.Commit(); blockCType.Commit();
+	blockAType.Commit(); 
+    blockBType.Commit(); 
+    blockCType.Commit();
 
 	double* myA = new double[blockRowsA*blockRowsB];
 	double* myB = new double[blockRowsB*blockColsB];
@@ -140,14 +165,15 @@ int main (int argc, char *argv[]){
 	if(!rank){
 		for(int i = 0; i < p_c; i++){
 			for(int j = 0; j < p_c; j++){
-				req = MPI::COMM_WORLD.Isend(A+i*blockRowsA*k+j*blockRowsB, 1, blockAType, i*p_c+j, 0);
-				req = MPI::COMM_WORLD.Isend(B+i*blockRowsB*n+j*blockColsB, 1, blockBType, i*p_c+j, 0);
+                // (buffer, count, datatype?, destination, tag)
+				req = MPI::COMM_WORLD.Isend(A + i * blockRowsA * k + j * blockRowsB, 1, blockAType, i * p_c + j, 0);
+				req = MPI::COMM_WORLD.Isend(B + i * blockRowsB * n + j * blockColsB, 1, blockBType, i * p_c + j, 0);
 			}
 		}
 	}
 
-	MPI::COMM_WORLD.Recv(myA, blockRowsA*blockRowsB, MPI::DOUBLE, 0, 0);
-	MPI::COMM_WORLD.Recv(myB, blockRowsB*blockColsB, MPI::DOUBLE, 0, 0);
+	MPI::COMM_WORLD.Recv(myA, blockRowsA * blockRowsB, MPI::DOUBLE, 0, 0);
+	MPI::COMM_WORLD.Recv(myB, blockRowsB * blockColsB, MPI::DOUBLE, 0, 0);
 
 	// Create the communicators
     //Used to be intetrcomm? --Brian
@@ -169,13 +195,7 @@ int main (int argc, char *argv[]){
 		colComm.Bcast(buffB, blockRowsB*blockColsB, MPI::DOUBLE, i);
 
 		// The multiplication of the submatrice
-		for(int i=0; i<blockRowsA; i++){
-			for(int j=0; j<blockColsB; j++){
-				for(int l=0; l<blockRowsB; l++){
-					myC[i*blockColsB+j] += buffA[i*blockRowsB+l]*buffB[l*blockColsB+j];
-				}
-			}
-		}
+        SimpleDGEMM(buffA, buffB, myC, blockRowsA, blockColsB, blockRowsB);
 	}
 
 	// Only process 0 writes
