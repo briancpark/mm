@@ -56,9 +56,18 @@ void printOutput(int rows, int cols, double *data){
 }
 
 void SimpleDGEMM(double *Atemp, double *Btemp, double *myC, int row, int col, int inner) {
-    size_t blocksize = 32;
+    for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+            for (int k = 0; k < inner; k++) {   
+                myC[i * inner + j] += Atemp[i * row + k] * Btemp[k * col + j];
+            }
+        }
+    }
+}
 
-    //#pragma omp parallel for num_threads(4)
+void SimpleDGEMMCached(double *Atemp, double *Btemp, double *myC, int row, int col, int inner) {
+    size_t blocksize = 32;
+    
     for (size_t i_blocked = 0; i_blocked < row; i_blocked += blocksize) {
         for (size_t j_blocked = 0; j_blocked < col; j_blocked += blocksize) {
             for (size_t k_blocked = 0; k_blocked < inner; k_blocked += blocksize) {
