@@ -4,6 +4,7 @@ ray.init()
 
 from nums import numpy as nps
 import numpy as np
+import numc as nc
 
 ns = [128, 512, 1024, 2048, 4096, 8192, 16384]#, 32768, 65536, 131072, 262144]
 
@@ -28,6 +29,17 @@ for n in ns:
 
     start = time.time()
     C = A @ B
+    end = time.time()
+    print(n)
+    print(end - start)
+
+print("numc benchmarks")
+for n in ns:
+    A = nc.Matrix(n, n, rand=True)
+    B = nc.Matrix(n, n, rand=True)
+
+    start = time.time()
+    C = A * B
     end = time.time()
     print(n)
     print(end - start)
