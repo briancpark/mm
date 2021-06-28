@@ -6,6 +6,7 @@
 #include "mpi.h"
 #include <omp.h>
 
+
 /*
     Implementation from cs267
 */

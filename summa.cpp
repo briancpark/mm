@@ -6,6 +6,11 @@
 #include "mpi.h"
 #include <omp.h>
 
+
+extern "C"
+{
+   #include <cblas.h>
+}
 /*
  * Source: https://github.com/JGU-HPC/parallelprogrammingbook/blob/master/chapter9/matrix_matrix_mult/summa.cpp
  */
@@ -56,6 +61,8 @@ void printOutput(int rows, int cols, double *data){
 }
 
 void SimpleDGEMM(double *Atemp, double *Btemp, double *myC, int row, int col, int inner) {
+    cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, row, col, inner, 1., Atemp, row, Btemp, row, 1., myC, inner);
+    /*
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
             for (int k = 0; k < inner; k++) {   
@@ -63,11 +70,11 @@ void SimpleDGEMM(double *Atemp, double *Btemp, double *myC, int row, int col, in
             }
         }
     }
+    */
 }
 
 void SimpleDGEMMCached(double *Atemp, double *Btemp, double *myC, int row, int col, int inner) {
     size_t blocksize = 32;
-    
     for (size_t i_blocked = 0; i_blocked < row; i_blocked += blocksize) {
         for (size_t j_blocked = 0; j_blocked < col; j_blocked += blocksize) {
             for (size_t k_blocked = 0; k_blocked < inner; k_blocked += blocksize) {
@@ -209,6 +216,7 @@ int main (int argc, char *argv[]){
 
 	// Only process 0 writes
 	// Gather the final matrix to the memory of process 0
+    /*
 	if(!rank){
 		for(int i=0; i<blockRowsA; i++)
 			memcpy(&C[i*n], &myC[i*blockColsB], blockColsB*sizeof(double));		
@@ -219,7 +227,7 @@ int main (int argc, char *argv[]){
 					MPI::COMM_WORLD.Recv(&C[i*blockRowsA*n+j*blockColsB], 1, blockCType, i*p_c+j, 0);
 	} else 
 		MPI::COMM_WORLD.Send(myC, blockRowsA*blockColsB, MPI::DOUBLE, 0, 0);
-
+    */
 	// Measure the current time
 	double end = MPI::Wtime();
 
