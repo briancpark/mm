@@ -61,3 +61,8 @@ For very large matrices in `summa.cpp`, I get the error:
 mpirun noticed that process rank 0 with PID 0 on node brian exited on signal 11 (Segmentation fault).
 --------------------------------------------------------------------------
 ```
+
+
+https://www.youtube.com/watch?v=PxMCthwZ8pw&t=945s
+
+for clbas studd with mkl

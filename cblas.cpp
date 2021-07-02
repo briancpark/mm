@@ -9,11 +9,8 @@ using namespace std::chrono;
 
 extern "C"
 {
-   #include <cblas.h>
-}
-
-void square_dgemm(int n, double* A, double* B, double* C) {
-    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1., A, n, B, n, 1., C, n);
+   #include <mkl.h>
+   #include <mkl_cblas.h>
 }
 
 int main() {
@@ -25,9 +22,9 @@ int main() {
     double *B;
     double *C;
 
-    A = new double[n * n];
-    B = new double[n * n];
-    C = new double[n * n];    
+    A = (double *) mkl_malloc(n * n * sizeof(double), 64);
+    B = (double *) mkl_malloc(n * n * sizeof(double), 64);
+    C = (double *) mkl_malloc(n * n * sizeof(double), 64);    
     
     for(int i=0; i<rows; i++) {
         for(int j=0; j<cols; j++) {
@@ -42,10 +39,11 @@ int main() {
     }
 
     auto start = high_resolution_clock::now();
-    square_dgemm(n, A, B, C);
-    auto stop = high_resolution_clock::now();
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1., A, n, B, n, 1., C, n);
+    auto end = high_resolution_clock::now();
 
-    auto duration = duration_cast<microseconds>(stop - start);
+    auto duration = duration_cast<microseconds>(end - start);
+  
   
     cout << (double) duration.count() / 1000000 << endl;
 
