@@ -54,10 +54,27 @@ conda activate nums
 pip install -e ".[testing]"
 ```
 
+### Jax Installation
+1.
+```sh
+pip3 install jax
+```
+
 ## Running Programs
 
 ## MKL's cblas
-A special Makefile to include Intel's compiler for MKL was made. A guide for how to make it was shown [here for reference](https://www.youtube.com/watch?v=PxMCthwZ8pw&t=945s).
+1. A special Makefile to include Intel's compiler for MKL was made. A guide for how to make it was shown [here for reference](https://www.youtube.com/watch?v=PxMCthwZ8pw&t=945s) and [here](https://software.intel.com/content/www/us/en/develop/documentation/mkl-tutorial-c/top/multiplying-matrices-using-dgemm.html). Requires environment variables to be written to `~/.bashrc` (if using bash):
+```sh
+export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64
+export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include
+export LD_LIBRARY_PATH=$MKL_LIB_DIR:$LD_LIBRARY_PATH
+```
+2. Compile and run
+```sh
+make cblas
+export MKL_NUM_THREADS=32
+./cblas <dimension size>
+```
 
 ## SUMMA implementation in C++ and OpenMPI
 
@@ -99,3 +116,18 @@ for clbas studd with mkl
 
 
 limit benchmarks to n = 8GB
+
+
+
+
+Notes for MKL installation
+https://cirrus.readthedocs.io/en/master/software-libraries/intel_mkl.html
+-DMKL_ILP64
+
+ILP vs LP interface layer
+
+Most applications will use 32-bit (4-byte) integers. This means the MKL 32-bit integer inteface should be selected (which gives the _lp64 extensions seen in the examples above).
+
+For applications which require, e.g., very large array indices (greater than 2^31-1 elements), the 64-bit integer interface is required. This gives rise to _ilp64 appended to library names. This may also require -DMKL_ILP64 at the compilation stage. Check the Intel link line advisor for specific cases.
+
+https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/onemkl/link-line-advisor.html

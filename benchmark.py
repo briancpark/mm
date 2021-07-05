@@ -20,7 +20,6 @@ numc_times = []
 summa_times = []
 
 
-
 print("nums benchmarks")
 
 for n in ns:
