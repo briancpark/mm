@@ -28,8 +28,15 @@ sudo apt install intel-mkl
 ```sh
 pip3 install mkl numpy
 ```
-Confirm that it has been installed
-
+Confirm that it has been installed:
+```
+python3
+Python 3.6.9 (default, Jan 26 2021, 15:33:00) 
+[GCC 8.4.0] on linux
+Type "help", "copyright", "credits" or "license" for more information.
+>>> import numpy as np
+>>> np.show_config()
+```
 
 ### NumS Installation
 1. Installation is as follows from the NumS [setup guide](https://github.com/nums-project/nums):
@@ -47,24 +54,22 @@ conda activate nums
 pip install -e ".[testing]"
 ```
 
+## Running Programs
 
+## MKL's cblas
+A special Makefile to include Intel's compiler for MKL was made. A guide for how to make it was shown [here for reference](https://www.youtube.com/watch?v=PxMCthwZ8pw&t=945s).
 
+## SUMMA implementation in C++ and OpenMPI
 
-## implementations
 MPI Matrix multiplication implementation
 http://www.umsl.edu/~siegelj/CS4740_5740/AlgorithmsII/mpi_mm.html
 
 
 SUMMA?
 https://github.com/irifed/mpi101
-
-
 https://github.com/JGU-HPC/parallelprogrammingbook/tree/master/chapter9/matrix_matrix_mult
 
-
-
 Links:
-
 https://github.com/Schlaubischlump/cannons-algorithm.git 
 https://github.com/andadiana/cannon-algorithm-mpi.git
 
@@ -88,7 +93,7 @@ mpirun noticed that process rank 0 with PID 0 on node brian exited on signal 11 
 ```
 
 
-https://www.youtube.com/watch?v=PxMCthwZ8pw&t=945s
+
 
 for clbas studd with mkl
 
