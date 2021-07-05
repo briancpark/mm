@@ -1,5 +1,56 @@
-# mm
+# DGEMM Benchmarks for NumS
+A small case study to compare popular dgemm libraries with NumS. Here, we explore different optimizations as well as compilations with MPI, MKL, etc.
 
+## Installation Guide
+
+### ScaLAPACK Installation
+1. Install gfortran, cmake, openmpi
+```sh
+sudo snap install cmake --classic
+sudo apt-get install gfortran, openmpi-bin libopenmpi-dev
+sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev 
+```
+2. Build and compile
+```sh
+rm CMakeCache.txt
+mkdir build
+cd build
+cmake ..
+make
+```
+
+### MKL Installation
+1. Install MKL. A guide for how to install it in Ubuntu Linux is [here](https://github.com/eddelbuettel/mkl4deb). With Ubuntu 20.04, simply install it with:
+```sh
+sudo apt install intel-mkl
+```
+2. Install and link MKL for Python (may require installation through conda as well)
+```sh
+pip3 install mkl numpy
+```
+Confirm that it has been installed
+
+
+### NumS Installation
+1. Installation is as follows from the NumS [setup guide](https://github.com/nums-project/nums):
+```sh
+pip install nums
+# Run below to have NumPy use MKL.
+conda install -fy mkl
+conda install -fy numpy scipy
+```
+2. Also create a development environment
+```sh
+cd nums
+conda create --name nums python=3.7 -y
+conda activate nums
+pip install -e ".[testing]"
+```
+
+
+
+
+## implementations
 MPI Matrix multiplication implementation
 http://www.umsl.edu/~siegelj/CS4740_5740/AlgorithmsII/mpi_mm.html
 
@@ -16,32 +67,6 @@ Links:
 
 https://github.com/Schlaubischlump/cannons-algorithm.git 
 https://github.com/andadiana/cannon-algorithm-mpi.git
-
-## Scalapack installation
-1. Install gfortran, cmake, openmpi
-```
-sudo snap install cmake --classic
-sudo apt-get install gfortran, openmpi-bin libopenmpi-dev
-sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev 
-```
-
-
-rm CMakeCache.txt
-mkdir build
-cd build
-cmake ..
-make
-
-
-install mkl
-pip3 install mkl
-numpy
-
-
-https://github.com/eddelbuettel/mkl4deb
-
-
-
 
 
 
@@ -66,3 +91,6 @@ mpirun noticed that process rank 0 with PID 0 on node brian exited on signal 11 
 https://www.youtube.com/watch?v=PxMCthwZ8pw&t=945s
 
 for clbas studd with mkl
+
+
+limit benchmarks to n = 8GB
