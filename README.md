@@ -78,6 +78,9 @@ make -j
 make install
 ```
 
+
+mpirun -np 4 ./build/miniapp/pxgemm_miniapp -m 10000 -n 10000 -k 10000 --block_a=100,100 --block_b=100,100 --block_c=100,100 --p_grid=2,2 --transpose=NN --type=double --algorithm=scalapack
+
 ## Running Programs
 
 ## MKL's cblas
@@ -156,3 +159,8 @@ Most applications will use 32-bit (4-byte) integers. This means the MKL 32-bit i
 For applications which require, e.g., very large array indices (greater than 2^31-1 elements), the 64-bit integer interface is required. This gives rise to _ilp64 appended to library names. This may also require -DMKL_ILP64 at the compilation stage. Check the Intel link line advisor for specific cases.
 
 https://software.intel.com/content/www/us/en/develop/tools/oneapi/components/onemkl/link-line-advisor.html
+
+
+
+
+https://stackoverflow.com/questions/10025866/parallel-linear-algebra-for-multicore-system
