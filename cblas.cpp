@@ -8,7 +8,7 @@ using namespace std;
 using namespace std::chrono;
 
 /*
-Timing Intel's MKL Cblas function
+Timing Intel's MKL cblas function
 */
 
 extern "C"

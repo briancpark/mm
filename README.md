@@ -60,20 +60,45 @@ pip install -e ".[testing]"
 pip3 install jax
 ```
 
+### COSMA Installation
+1. Installation instructions [here](https://github.com/eth-cscs/COSMA). 
+2. Note that all MKL envrionment varialbes should be set correctly. Again, it is probably safe to enter these commands again:
+```sh
+export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64
+export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include
+export LD_LIBRARY_PATH=$MKL_LIB_DIR:$LD_LIBRARY_PATH
+export MKLROOT=/opt/intel/mkl
+```
+3. Install with these commands. For some reason, cloning with teh recursive flag is VERY important!
+```sh
+git clone --recursive https://github.com/eth-cscs/COSMA cosma && cd cosma
+mkdir build && cd build
+cmake -DCOSMA_BLAS=MKL -DCOSMA_SCALAPACK=MKL -DCMAKE_INSTALL_PREFIX=../install/cosma ..
+make -j
+make install
+```
+
 ## Running Programs
 
 ## MKL's cblas
+https://software.intel.com/content/www/us/en/develop/tools/oneapi/hpc-toolkit/download.html?operatingsystem=linux&distributions=aptpackagemanager
 1. A special Makefile to include Intel's compiler for MKL was made. A guide for how to make it was shown [here for reference](https://www.youtube.com/watch?v=PxMCthwZ8pw&t=945s) and [here](https://software.intel.com/content/www/us/en/develop/documentation/mkl-tutorial-c/top/multiplying-matrices-using-dgemm.html). Requires environment variables to be written to `~/.bashrc` (if using bash):
 ```sh
 export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64
 export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include
 export LD_LIBRARY_PATH=$MKL_LIB_DIR:$LD_LIBRARY_PATH
+export MKLROOT=/opt/intel/mkl
 ```
 2. Compile and run
 ```sh
 make cblas
 export MKL_NUM_THREADS=32
 ./cblas <dimension size>
+```
+
+Also make sure intel's MPI is installed:
+```sh
+source /opt/intel/oneapi/setvars.sh 
 ```
 
 ## SUMMA implementation in C++ and OpenMPI
