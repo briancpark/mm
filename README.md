@@ -57,6 +57,13 @@ Type "help", "copyright", "credits" or "license" for more information.
 >>> np.show_config()
 ```
 By default, it may be set to OpenBLAS, so always check before running benchmarks.
+Sometimes, it MKL acts weird for Python, so if it still gives import error, try:
+```sh
+conda install mkl-service
+conda update -n base -c defaults conda
+pip install numpy scipy --no-binary numpy,scipy --force-reinstall
+```
+
 
 ### NumS Installation
 1. Installation is as follows from the NumS [setup guide](https://github.com/nums-project/nums):
@@ -182,7 +189,7 @@ https://stackoverflow.com/questions/48072530/mpi-code-only-using-one-of-two-numa
 
 Architecture
 ```
-lsArchitecture:        x86_64
+Architecture:        x86_64
 CPU op-mode(s):      32-bit, 64-bit
 Byte Order:          Little Endian
 CPU(s):              64
