@@ -79,9 +79,10 @@ lapack_opt_info:
 By default, it may be set to OpenBLAS, so always check before running benchmarks.
 Sometimes, it MKL acts weird for Python, so if it still gives import error, try:
 ```sh
-conda install mkl-service
+conda create --name numpy python=3.7 -y
 conda install -f mkl
 conda install -f numpy
+conda install mkl-service
 ```
 
 
@@ -104,7 +105,9 @@ pip install -e ".[testing]"
 ### Jax Installation
 1.
 ```sh
-pip3 install jax
+conda create --name jax python=3.7 -y
+conda activate jax
+pip3 install jax jaxlib numpy
 ```
 
 ### COSMA Installation

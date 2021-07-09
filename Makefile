@@ -7,6 +7,9 @@ cblas: cblas.cpp
 pblas: pblas.cpp
 	mpicxx -L$(MKL_LIB_DIR) -I$(MKL_INCLUDE_DIR) pblas.cpp -o pblas $(COMPILER_FLAGS_PBLAS)
 
+summa: summa.cpp
+	mpicxx -L$(MKL_LIB_DIR) -I$(MKL_INCLUDE_DIR) summa.cpp -o summa $(COMPILER_FLAGS_PBLAS)
+
 .PHONY : clean
 
 clean: 

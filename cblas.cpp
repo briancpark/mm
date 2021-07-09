@@ -6,6 +6,11 @@
 #include <chrono>
 using namespace std;
 using namespace std::chrono;
+using std::chrono::high_resolution_clock;
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
 
 /*
 Timing Intel's MKL cblas function
@@ -47,14 +52,17 @@ int main(int argc, char *argv[]) {
             B[i * cols + j] = (double) rand() / RAND_MAX * 2.0 - 1.0;
         }
     }
+    
+    auto t1 = high_resolution_clock::now();
+    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1., A, n, B, n, 0., C, n);
+    auto t2 = high_resolution_clock::now();
 
-    auto start = high_resolution_clock::now();
-    cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1., A, n, B, n, 1., C, n);
-    auto end = high_resolution_clock::now();
+    
+    /* Getting number of milliseconds as a double. */
+    duration<double, std::milli>  duration = t2 - t1;
 
-    auto duration = duration_cast<microseconds>(end - start);
-
-    cout << (double) duration.count() / 1000000 << endl;
+    std::cout <<  duration.count() / 1000;
+    cout << ", ";
 
     mkl_free(A);
     mkl_free(B);
