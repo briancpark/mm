@@ -12,8 +12,11 @@ for n in ns:
     start = time.time()
     C = A @ B
     end = time.time()
-    
-    print(end - start, end = ', ')
+    del A
+    del B
+    del C
     times.append(end - start)
+    
+    time.sleep(1)
 
-print()
+print(times)

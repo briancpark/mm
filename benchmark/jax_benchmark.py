@@ -10,10 +10,12 @@ for n in ns:
     B = jnp.asarray(np.random.randn(n, n))
 
     start = time.time()
-    C = A @ B
+    C = jnp.matmul(A, B).block_until_ready()
     end = time.time()
-    
-    print(end - start, end = ', ')
+    del A
+    del B
+    del C
     times.append(end - start)
+    time.sleep(1)
 
-print()
+print(times)
