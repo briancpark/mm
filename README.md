@@ -48,20 +48,40 @@ source /opt/intel/oneapi/setvars.sh
 pip3 install mkl numpy
 ```
 2. Confirm that it has been installed:
-```
+```python
 python3
 Python 3.6.9 (default, Jan 26 2021, 15:33:00) 
 [GCC 8.4.0] on linux
 Type "help", "copyright", "credits" or "license" for more information.
 >>> import numpy as np
 >>> np.show_config()
+blas_mkl_info:
+    libraries = ['mkl_rt', 'pthread']
+    library_dirs = ['/home/brian/anaconda3/envs/nums/lib']
+    define_macros = [('SCIPY_MKL_H', None), ('HAVE_CBLAS', None)]
+    include_dirs = ['/home/brian/anaconda3/envs/nums/include']
+blas_opt_info:
+    libraries = ['mkl_rt', 'pthread']
+    library_dirs = ['/home/brian/anaconda3/envs/nums/lib']
+    define_macros = [('SCIPY_MKL_H', None), ('HAVE_CBLAS', None)]
+    include_dirs = ['/home/brian/anaconda3/envs/nums/include']
+lapack_mkl_info:
+    libraries = ['mkl_rt', 'pthread']
+    library_dirs = ['/home/brian/anaconda3/envs/nums/lib']
+    define_macros = [('SCIPY_MKL_H', None), ('HAVE_CBLAS', None)]
+    include_dirs = ['/home/brian/anaconda3/envs/nums/include']
+lapack_opt_info:
+    libraries = ['mkl_rt', 'pthread']
+    library_dirs = ['/home/brian/anaconda3/envs/nums/lib']
+    define_macros = [('SCIPY_MKL_H', None), ('HAVE_CBLAS', None)]
+    include_dirs = ['/home/brian/anaconda3/envs/nums/include']
 ```
 By default, it may be set to OpenBLAS, so always check before running benchmarks.
 Sometimes, it MKL acts weird for Python, so if it still gives import error, try:
 ```sh
 conda install mkl-service
-conda update -n base -c defaults conda
-pip install numpy scipy --no-binary numpy,scipy --force-reinstall
+conda install -f mkl
+conda install -f numpy
 ```
 
 
