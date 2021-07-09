@@ -8,10 +8,12 @@ times = []
 for n in ns:
     A = nps.random.randn(n, n)
     B = nps.random.randn(n, n)
-
+    print(A.block_shape)
+    print(B.block_shape)
     start = time.time()
     C = A @ B
     C.touch()
+    
     end = time.time()
     
     print(end - start, end = ', ')

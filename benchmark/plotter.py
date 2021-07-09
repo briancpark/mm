@@ -6,6 +6,8 @@ jax = [0.0503544807434082, 0.006996631622314453, 0.010968208312988281, 0.0244386
 numpy = [0.01636219024658203, 0.013672590255737305, 0.010072708129882812, 0.026674270629882812, 0.12376141548156738, 0.8846476078033447, 5.68596887588501]
 mkl_cblas = [0.0216333, 0.0348459, 0.0410609, 0.039651, 0.156786, 1.12944, 7.88177]
 summa = [0.102857, 0.174629, 0.188206, 0.207394, 0.675447, 2.18323, 9.60133]
+cosma = [12 / 1000, 21 / 1000, 49/ 1000, 393 / 1000, 1191 / 1000, 3631 / 1000, 14000 / 1000]
+#scalapack = [12 / 1000, 21 / 1000, 49/ 1000, 393 / 1000, 1191 / 1000, 3631 / 1000, 14000 /10]
 
 plt.figure(figsize=(10, 10))
 plt.plot(sizes, nums)
@@ -13,7 +15,8 @@ plt.plot(sizes, numpy)
 plt.plot(sizes, jax)
 plt.plot(sizes, summa)
 plt.plot(sizes, mkl_cblas)
+plt.plot(sizes, cosma)
 plt.xlabel("n in nxn matrix")
 plt.ylabel("Time in seconds")
-plt.legend(["nums", "numpy", "jax", "summa", "mkl_cblas"])
+plt.legend(["nums", "numpy", "jax", "summa", "mkl_cblas", "cosma"])
 plt.savefig("benchmark.png")
