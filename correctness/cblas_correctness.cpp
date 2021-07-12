@@ -4,6 +4,7 @@
 #include <string.h>
 #include <math.h>
 #include <chrono>
+#include <fstream>      
 using namespace std;
 using namespace std::chrono;
 using std::chrono::high_resolution_clock;
@@ -12,14 +13,30 @@ using std::chrono::duration_cast;
 using std::chrono::duration;
 using std::chrono::milliseconds;
 
-/*
-Timing Intel's MKL cblas function
-*/
-
 extern "C"
 {
    #include <mkl.h>
    #include <mkl_cblas.h>
+}
+
+void readMatrix(double *matrix, string filename, int size) {
+    ifstream f(filename);   
+
+    for (int i = 0; i < size * size; i++) {
+        f >> matrix[i];
+    }
+}
+
+bool compare(double *C, double *C_correct, int size) {
+    bool correct_flag = true;
+
+    for (int i = 0; i < size * size; i++) {
+        
+        if (C[i] != C_correct[i]) {
+            return false;
+        }
+    }
+    return correct_flag;
 }
 
 int main(int argc, char *argv[]) {
@@ -36,6 +53,7 @@ int main(int argc, char *argv[]) {
     double *A;
     double *B;
     double *C;
+    double *C_correctness;
 
     int align = 64;
 
@@ -57,32 +75,32 @@ int main(int argc, char *argv[]) {
         mkl_free(B);
         return -1;
     }
-    
-    for (unsigned long long int i = 0; i < rows; i++) {
-        for (unsigned long long int j = 0; j < cols; j++) {
-            A[i * cols + j] = (double) rand() / RAND_MAX * 2.0 - 1.0;
-        }
+
+    C_correctness = (double *) mkl_calloc(n * n, sizeof(double), align);    
+    if (C_correctness == NULL) {
+        cout << "Memory allocation failed." << endl;
+        mkl_free(A);
+        mkl_free(B);
+        return -1;
     }
 
-    for(unsigned long long int i = 0; i < rows; i++) {
-        for(unsigned long long int j = 0; j < cols; j++) {
-            B[i * cols + j] = (double) rand() / RAND_MAX * 2.0 - 1.0;
-        }
-    }
-    
-    auto t1 = high_resolution_clock::now();
+    readMatrix(A, "A/A_128.txt", 128);
+    readMatrix(B, "B/B_128.txt", 128);
+    readMatrix(C_correctness, "C/C_128.txt", 128);
+
+   
     cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, n, n, n, 1., A, n, B, n, 0., C, n);
-    auto t2 = high_resolution_clock::now();
 
-    /* Getting number of milliseconds as a double. */
-    duration<double, std::milli>  duration = t2 - t1;
-
-    std::cout <<  duration.count() / 1000;
-    cout << ", ";
+    if (compare(C, C_correctness, 128)) {
+        cout << "check!" << endl;
+    } else {
+        cout << "incorrect!" << endl;
+    }
 
     mkl_free(A);
     mkl_free(B);
     mkl_free(C);
+    mkl_free(C_correctness);
 
     return 0;
 }

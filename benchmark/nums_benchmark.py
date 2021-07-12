@@ -1,14 +1,17 @@
 import time
 import ray
+ray.init(num_cpus=32)
 import nums.numpy as nps
 import dimensions
+
 
 ns = dimensions.ns
 times = []
 for n in ns:
     A = nps.random.randn(n, n)
     B = nps.random.randn(n, n)
-
+    A.touch()
+    B.touch()
     start = time.time()
     C = A @ B
     C.touch()
