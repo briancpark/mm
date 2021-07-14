@@ -26,7 +26,7 @@ make
 sudo apt install intel-mkl
 ```
 2. Additionally, you have to install IntelMPI for communication algorithms in ScaLAPACK MKL to work properly. Installation guide can be found [here](https://software.intel.com/content/www/us/en/develop/tools/oneapi/hpc-toolkit/download.html?operatingsystem=linux&distributions=aptpackagemanager).
-3. Additionally, set environent variables in the shell. (This will be needed later if you want to compile C/C++ programs with MKL library)
+3. Set environent variables in the shell. (This will be needed later if you want to compile C/C++ programs with MKL library):
 ```sh
 export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64
 export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include
@@ -39,10 +39,10 @@ export MKL_NUM_THREADS=32
 ```
 5. A shell configuration has to be run in order for IntelMPI to be run properly:
 ```sh
-source /opt/intel/oneapi/setvars.sh 
+source /opt/intel/oneapi/setvars.sh
 ```
 
-### ScaLAPACK MKL LAPACK for NumPy Installation
+### NumPy with MKL LAPACK Installation
 1. Create a new environment, and then install and link MKL for Python.
 ```sh
 conda create --name numpy python=3.7 -y
@@ -148,7 +148,7 @@ make cblas
 export MKL_NUM_THREADS=32 #if not already set
 ./cblas <dimension size>
 ```
-Currently, the implentation is only doing square matrices for the convenience of benchmarking.
+*Currently, the implentation is only doing square matrices for the convenience of benchmarking.*
 
 3. (Additional Information) [Notes for MKL installation](https://cirrus.readthedocs.io/en/master/software-libraries/intel_mkl.html). Clarification whether to use ILP or LP interface:
 ILP vs LP interface layer
@@ -156,7 +156,7 @@ Most applications will use 32-bit (4-byte) integers. This means the MKL 32-bit i
 For applications which require, e.g., very large array indices (greater than 2^31-1 elements), the 64-bit integer interface is required. This gives rise to _ilp64 appended to library names. This may also require -DMKL_ILP64 at the compilation stage. Check the Intel link line advisor for specific cases.
 
 ## COSMA and ScaLAPACK
-1. Make sure COSMA is compiled. COSMA has a miniapp that bencmarks both COSMA and ScaLAPACK. Check the flags for usage.
+1. Make sure COSMA is compiled. COSMA has a miniapp that benchmarks both COSMA and ScaLAPACK. Check the flags for usage.
 ```sh
 mpirun -np 4 ./build/miniapp/pxgemm_miniapp -m 10000 -n 10000 -k 10000 --block_a=100,100 --block_b=100,100 --block_c=100,100 --p_grid=2,2 --transpose=NN --type=double --algorithm=cosma
 ```
@@ -180,12 +180,45 @@ https://github.com/Schlaubischlump/cannons-algorithm.git
 https://github.com/andadiana/cannon-algorithm-mpi.git
 
 
+
+## Bugs and fixes
+
+Sometimes,
+
+https://community.intel.com/t5/Intel-oneAPI-Math-Kernel-Library/Segmentation-Fault-in-MKL-PBLAS-ScaLAPACK/m-p/946633
+```
+[brian:64309] *** Process received signal ***
+[brian:64309] Signal: Segmentation fault (11)
+[brian:64309] Signal code: Address not mapped (1)
+[brian:64309] Failing at address: 0x564a0a728000
+```
+
+```
+source /opt/intel/compilers_and_libraries/linux/mkl/bin/mklvars.sh intel64
+source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64
+source /opt/intel/oneapi/setvars.sh
+```
+
 ## Benchmarks
-![](benchmark/benchmark.png)
+![](benchmark/figures/benchmark_all.png)
+
+### Shared Memory Only Algorithms Benchmark
+![](benchmark/figures/benchmark_single_node.png)
+These packages are only supported on shared memory systems
+
+Libraries experimented with are numpy, mkl_cblas, and jax. MKL BLAS should have near identical performance to NumPy, as both are calling the same function `cblas_dgemm()`. Performance on NumPy doesn't seem to be affected by the fact that it is running in Python. Jax seems to be the fastest, due to it's low level optimization and JIT compilation using XLA.
+
+### Distributed Memory Only Algorithms Benchmark (on single node)
+![](benchmark/figures/benchmark_distributed.png)
+These algorithms can be run on both shared and distributed memory systems.
+
+### Distributed Memory Only Algorithms Benchmark (on cluster)
+coming soon
 
 # Notes (Draft)
 
 For very large matrices in `summa.cpp`, I get the error:
+
 ```
 [brian:64309] *** Process received signal ***
 [brian:64309] Signal: Segmentation fault (11)
