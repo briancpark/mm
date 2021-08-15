@@ -1,5 +1,5 @@
 # DGEMM Benchmarks for NumS
-A small case study to compare popular DGEMM libraries with NumS. Here, we explore different kinds of optimizations with MPI, MKL, etc.
+A small case study to compare popular DGEMM libraries with NumS. Here, we explore different kinds of optimizations with MPI, MKL, etc. Benchmarkings were all done on an Intel Xeon processor with 32 cores. More details about the CPU are below.
 
 ## Installation Guide
 
@@ -150,7 +150,10 @@ export MKL_NUM_THREADS=32 #if not already set
 ```
 *Currently, the implentation is only doing square matrices for the convenience of benchmarking.*
 
-3. (Additional Information) [Notes for MKL installation](https://cirrus.readthedocs.io/en/master/software-libraries/intel_mkl.html). Clarification whether to use ILP or LP interface:
+3. Additionally, `mkl_malloc()` is an optimized version of `malloc()` that can support SIMD vectorization with Intel Intrinsics. The additional parameter inside of `mkl_malloc()` is the number of bytes. Since the CPU used can support 512 bit wide vector instrutions, 64 bytes is used to squeeze in a bit more data parallelism.
+[Reference](https://software.intel.com/content/www/us/en/develop/documentation/onemkl-developer-reference-c/top/support-functions/memory-management/mkl-malloc.html)
+
+4. (Additional Information) [Notes for MKL installation](https://cirrus.readthedocs.io/en/master/software-libraries/intel_mkl.html). Clarification whether to use ILP or LP interface:
 ILP vs LP interface layer
 Most applications will use 32-bit (4-byte) integers. This means the MKL 32-bit integer inteface should be selected (which gives the _lp64 extensions seen in the examples above).
 For applications which require, e.g., very large array indices (greater than 2^31-1 elements), the 64-bit integer interface is required. This gives rise to _ilp64 appended to library names. This may also require -DMKL_ILP64 at the compilation stage. Check the Intel link line advisor for specific cases.
@@ -180,25 +183,6 @@ https://github.com/Schlaubischlump/cannons-algorithm.git
 https://github.com/andadiana/cannon-algorithm-mpi.git
 
 
-
-## Bugs and fixes
-
-Sometimes,
-
-https://community.intel.com/t5/Intel-oneAPI-Math-Kernel-Library/Segmentation-Fault-in-MKL-PBLAS-ScaLAPACK/m-p/946633
-```
-[brian:64309] *** Process received signal ***
-[brian:64309] Signal: Segmentation fault (11)
-[brian:64309] Signal code: Address not mapped (1)
-[brian:64309] Failing at address: 0x564a0a728000
-```
-
-```
-source /opt/intel/compilers_and_libraries/linux/mkl/bin/mklvars.sh intel64
-source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64
-source /opt/intel/oneapi/setvars.sh
-```
-
 ## Benchmarks
 ![](benchmark/figures/benchmark_all.png)
 
@@ -214,36 +198,6 @@ These algorithms can be run on both shared and distributed memory systems.
 
 ### Distributed Memory Only Algorithms Benchmark (on cluster)
 coming soon
-
-# Notes (Draft)
-
-For very large matrices in `summa.cpp`, I get the error:
-
-```
-[brian:64309] *** Process received signal ***
-[brian:64309] Signal: Segmentation fault (11)
-[brian:64309] Signal code: Address not mapped (1)
-[brian:64309] Failing at address: 0x564a0a728000
-[brian:64309] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x3f040)[0x7fcf267c5040]
-[brian:64309] [ 1] ./summa(+0xba6e)[0x564a09bdaa6e]
-[brian:64309] [ 2] ./summa(+0xbf8c)[0x564a09bdaf8c]
-[brian:64309] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fcf267a7bf7]
-[brian:64309] [ 4] ./summa(+0xb91a)[0x564a09bda91a]
-[brian:64309] *** End of error message ***
---------------------------------------------------------------------------
-mpirun noticed that process rank 0 with PID 0 on node brian exited on signal 11 (Segmentation fault).
---------------------------------------------------------------------------
-```
-
-
-limit benchmarks to n = 8GB
-
-Discussion about parallel LA packages
-https://stackoverflow.com/questions/10025866/parallel-linear-algebra-for-multicore-system
-
-
-NUMA nodes
-https://stackoverflow.com/questions/48072530/mpi-code-only-using-one-of-two-numa-nodes
 
 
 #### Architecture
@@ -276,3 +230,54 @@ NUMA node0 CPU(s):   0-31
 NUMA node1 CPU(s):   32-63
 Flags:               fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology cpuid pni pclmulqdq vmx ssse3 fma cx16 pcid sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single tpr_shadow vnmi ept vpid ept_ad fsgsbase bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx avx512f avx512dq rdseed adx smap clflushopt clwb avx512cd avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_vnni md_clear arch_capabilities
 ```
+
+## Bugs and fixes
+
+Sometimes, MPI will throw a segmentation fault error complaining about an address not mapped.
+
+https://community.intel.com/t5/Intel-oneAPI-Math-Kernel-Library/Segmentation-Fault-in-MKL-PBLAS-ScaLAPACK/m-p/946633
+```
+[brian:64309] *** Process received signal ***
+[brian:64309] Signal: Segmentation fault (11)
+[brian:64309] Signal code: Address not mapped (1)
+[brian:64309] Failing at address: 0x564a0a728000
+```
+
+It could be the case that some variables weren't set propertly, so running the commands below helped resolve my issue. 
+```
+source /opt/intel/compilers_and_libraries/linux/mkl/bin/mklvars.sh intel64
+source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64
+source /opt/intel/oneapi/setvars.sh
+```
+
+# Notes (Draft)
+
+For very large matrices in `summa.cpp`, I get the error:
+
+```
+[brian:64309] *** Process received signal ***
+[brian:64309] Signal: Segmentation fault (11)
+[brian:64309] Signal code: Address not mapped (1)
+[brian:64309] Failing at address: 0x564a0a728000
+[brian:64309] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x3f040)[0x7fcf267c5040]
+[brian:64309] [ 1] ./summa(+0xba6e)[0x564a09bdaa6e]
+[brian:64309] [ 2] ./summa(+0xbf8c)[0x564a09bdaf8c]
+[brian:64309] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fcf267a7bf7]
+[brian:64309] [ 4] ./summa(+0xb91a)[0x564a09bda91a]
+[brian:64309] *** End of error message ***
+--------------------------------------------------------------------------
+mpirun noticed that process rank 0 with PID 0 on node brian exited on signal 11 (Segmentation fault).
+--------------------------------------------------------------------------
+```
+
+
+limit benchmarks to n = 8GB
+
+Discussion about parallel LA packages
+https://stackoverflow.com/questions/10025866/parallel-linear-algebra-for-multicore-system
+
+
+NUMA nodes
+https://stackoverflow.com/questions/48072530/mpi-code-only-using-one-of-two-numa-nodes
+
+

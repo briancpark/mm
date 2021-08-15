@@ -8,7 +8,7 @@ numpy = [0.015555858612060547, 0.009791851043701172, 0.009885072708129883, 0.027
 mkl_cblas = [0.0195606, 0.0356428, 0.0408835, 0.0366671, 0.165296, 1.17308, 5.58987]
 summa = [0.102857, 0.174629, 0.188206, 0.207394, 0.675447, 2.18323, 9.60133]
 cosma = [0.012, 0.021, 0.047, 0.163, 0.798, 1.695, 6.037]
-scalapack = [0.007, 0.017, 0.033, 0.264, 1.913, 0, 0]#, 16.224, 128.469]
+scalapack = [0.009, 0.017, 0.028, 0.051, 0.195, 1.114, 7.083]
 
 plt.figure(figsize=(10, 10))
 plt.plot(sizes, nums)
@@ -21,7 +21,7 @@ plt.plot(sizes, scalapack)
 plt.title(r"$n \times n$ DGEMM Benchmarks")
 plt.xlabel(r"$n$ in $n \times n$ matrix")
 plt.ylabel("Time in seconds")
-plt.legend(["nums", "numpy", "jax", "summa", "mkl_cblas", "cosma"])
+plt.legend(["nums", "numpy", "jax", "summa", "mkl_cblas", "cosma", "scalapack"])
 plt.savefig("figures/benchmark_all.png")
 plt.clf()
 
@@ -33,7 +33,7 @@ plt.plot(sizes, scalapack)
 plt.title(r"$n \times n$ PDGEMM Benchmarks Running on Shared Memory System")
 plt.xlabel(r"$n$ in $n \times n$ matrix")
 plt.ylabel("Time in seconds")
-plt.legend(["nums", "summa", "cosma"])
+plt.legend(["nums", "summa", "cosma", "scalapack"])
 plt.savefig("figures/benchmark_distributed.png")
 plt.clf()
 
