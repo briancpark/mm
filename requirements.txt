@@ -1,0 +1,6 @@
+nums
+numpy
+mkl
+jax
+scipy
+numba
