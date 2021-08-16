@@ -124,6 +124,38 @@ make -j
 make install
 ```
 
+### SLATE Installation
+1. Installation instructions: [here](https://bitbucket.org/icl/slate/src/master/).
+2. Install with these commands:
+```sh
+git clone --recursive https://bitbucket.org/icl/slate
+git pull
+git submodule update
+```
+3. Create a `make.inc` file to properly link the libaries installed, with IntelMPI and MKL, the file should look like this:
+```
+CXX  = mpicxx
+FC   = mpif90
+blas = mkl
+mkl_blacs = intelmpi
+gpu_backend = none
+```
+4. Before running, make sure that environment variables are set right by running these commands:
+```sh
+source /opt/intel/compilers_and_libraries/linux/mkl/bin/mklvars.sh intel64
+source /opt/intel/bin/compilervars.sh intel64
+source /opt/intel/oneapi/setvars.sh
+export CPATH=$CPATH:/opt/intel/oneapi/mkl/2021.3.0/include
+export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64
+export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include
+export LD_LIBRARY_PATH=$MKL_LIB_DIR:$LD_LIBRARY_PATH
+export MKLROOT=/opt/intel/mkl
+```
+5. Compile
+```sh
+make -j && sudo make install -j
+```
+
 ## Running Programs
 
 ### NumPy with MKL
@@ -229,25 +261,6 @@ L3 cache:            36608K
 NUMA node0 CPU(s):   0-31
 NUMA node1 CPU(s):   32-63
 Flags:               fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology cpuid pni pclmulqdq vmx ssse3 fma cx16 pcid sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single tpr_shadow vnmi ept vpid ept_ad fsgsbase bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx avx512f avx512dq rdseed adx smap clflushopt clwb avx512cd avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_vnni md_clear arch_capabilities
-```
-
-## Bugs and fixes
-
-Sometimes, MPI will throw a segmentation fault error complaining about an address not mapped.
-
-https://community.intel.com/t5/Intel-oneAPI-Math-Kernel-Library/Segmentation-Fault-in-MKL-PBLAS-ScaLAPACK/m-p/946633
-```
-[brian:64309] *** Process received signal ***
-[brian:64309] Signal: Segmentation fault (11)
-[brian:64309] Signal code: Address not mapped (1)
-[brian:64309] Failing at address: 0x564a0a728000
-```
-
-It could be the case that some variables weren't set propertly, so running the commands below helped resolve my issue. 
-```
-source /opt/intel/compilers_and_libraries/linux/mkl/bin/mklvars.sh intel64
-source /opt/intel/compilers_and_libraries/linux/bin/compilervars.sh intel64
-source /opt/intel/oneapi/setvars.sh
 ```
 
 # Notes (Draft)
