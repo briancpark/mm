@@ -1,2 +1,0 @@
-mpicxx -o summa summa.cpp && mpirun -np 16 ./summa 4096 4096 4096
-mpicxx -o summa_267 summa_267.cpp && mpirun -np 16 ./summa_267
