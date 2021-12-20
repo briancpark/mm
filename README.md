@@ -3,12 +3,21 @@ A small case study to compare popular DGEMM libraries with NumS. Here, we explor
 
 ## Installation Guide
 
-### ScaLAPACK (Netlib) Installation
-Skip this installation if on Intel architecture. Intel has their own distribution of ScaLAPACK opimized with MKL.
-1. Install gfortran, cmake, openmpi
+### Getting Started
+1. Install essential tools for compiling and debugging:
+
 ```sh
 sudo snap install cmake --classic
-sudo apt-get install gfortran, openmpi-bin libopenmpi-dev
+sudo apt-get install gfortran
+```
+2. Install [Anaconda](https://docs.anaconda.com/anaconda/install/index.html) to isolate python packages when benchmarking.
+
+### ScaLAPACK (Netlib) Installation
+Skip this installation if on Intel architecture. Intel has their own distribution of ScaLAPACK opimized with MKL and IntelMPI. ScaLAPACK should install all the [other packages](http://www.netlib.org/scalapack/scalapack.jpg) it depends on such as LAPACK, PBLAS, BLAS, BLACS (Same goes for the Intel MKL installation).
+
+1. Install openmpi
+```sh
+sudo apt-get install penmpi-bin libopenmpi-dev
 sudo apt-get install libblas-dev liblapack-dev libatlas-base-dev 
 ```
 2. Build and compile
@@ -20,26 +29,39 @@ cmake ..
 make
 ```
 
-### ScaLAPACK MKL Installation
+### ScaLAPACK (MKL) Installation
 1. Install MKL. A guide for how to install it in Ubuntu Linux is [here](https://github.com/eddelbuettel/mkl4deb). With Ubuntu 20.04, simply install it with:
 ```sh
 sudo apt install intel-mkl
 ```
 2. Additionally, you have to install IntelMPI for communication algorithms in ScaLAPACK MKL to work properly. Installation guide can be found [here](https://software.intel.com/content/www/us/en/develop/tools/oneapi/hpc-toolkit/download.html?operatingsystem=linux&distributions=aptpackagemanager).
-3. Set environent variables in the shell. (This will be needed later if you want to compile C/C++ programs with MKL library):
+3. Set environent variables in the shell. It will also properly set the IntelMPI environment. (This will be needed later if you want to compile C/C++ programs with MKL library):
 ```sh
 export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64
 export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include
 export LD_LIBRARY_PATH=$MKL_LIB_DIR:$LD_LIBRARY_PATH
 export MKLROOT=/opt/intel/mkl
+export CPATH=$CPATH:/opt/intel/oneapi/mkl/2021.3.0/include
+source /opt/intel/bin/compilervars.sh intel64
+source /opt/intel/oneapi/setvars.sh
 ```
-4. Setting an envrionment variable for number of threads can also be helpful if it happens to not be running on multiple threads.
+4. Setting an envrionment variable for number of threads can also be helpful if it happens to not be running on multiple threads. Make sure to set the number of threads to physical cores (on hyperthreaded system). It can also be customized to run with `mpirun` nodes. For best practices on a high performance single node machine, set MPI nodes to the number of sockets and MKL/OpenMP threads to cores per socket:
 ```sh
 export MKL_NUM_THREADS=32
+# Run ScaLAPACK with MPI and OpenMP/MKL configuration
+export MKL_NUM_THREADS=16; mpirun -np 2 ./program
 ```
-5. A shell configuration has to be run in order for IntelMPI to be run properly:
+
+5. Do not install any other MPI versions or BLAS libraries as they can fail to link correctly to Intel specific programs. To load everything automatically at a new shell login, it is also helpful to add the envionrment variables and setup shell scripts to `~/.bashrc`.
+
 ```sh
-source /opt/intel/oneapi/setvars.sh
+echo 'export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64' >> ~/.bashrc
+echo 'export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include' >> ~/.bashrc 
+echo 'export LD_LIBRARY_PATH=$MKL_LIB_DIR:$LD_LIBRARY_PATH' >> ~/.bashrc 
+echo 'export MKLROOT=/opt/intel/mkl' >> ~/.bashrc 
+echo 'export CPATH=$CPATH:/opt/intel/oneapi/mkl/2021.3.0/include' >> ~/.bashrc 
+echo 'source /opt/intel/bin/compilervars.sh intel64' >> ~/.bashrc 
+echo 'source /opt/intel/oneapi/setvars.sh' >> ~/.bashrc 
 ```
 
 ### NumPy with MKL LAPACK Installation
@@ -113,9 +135,11 @@ export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64
 export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include
 export LD_LIBRARY_PATH=$MKL_LIB_DIR:$LD_LIBRARY_PATH
 export MKLROOT=/opt/intel/mkl
-export MKL_NUM_THREADS=32
+export CPATH=$CPATH:/opt/intel/oneapi/mkl/2021.3.0/include
+source /opt/intel/bin/compilervars.sh intel64
+source /opt/intel/oneapi/setvars.sh
 ```
-3. Install with these commands. For some reason, cloning with the recursive flag is **VERY** important!
+3. Install with these commands. Cloning with the recursive flag is **VERY** important!
 ```sh
 git clone --recursive https://github.com/eth-cscs/COSMA cosma && cd cosma
 mkdir build && cd build
@@ -132,7 +156,19 @@ git clone --recursive https://bitbucket.org/icl/slate
 git pull
 git submodule update
 ```
-3. Create a `make.inc` file to properly link the libaries installed, with IntelMPI and MKL, the file should look like this:
+
+3. Before running, make sure that environment variables are set right by running these commands:
+```sh
+export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64
+export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include
+export LD_LIBRARY_PATH=$MKL_LIB_DIR:$LD_LIBRARY_PATH
+export MKLROOT=/opt/intel/mkl
+export CPATH=$CPATH:/opt/intel/oneapi/mkl/2021.3.0/include
+source /opt/intel/bin/compilervars.sh intel64
+source /opt/intel/oneapi/setvars.sh
+```
+
+4. Create a `make.inc` file to properly link the libaries installed, with IntelMPI and MKL, the file should look like this:
 ```
 CXX  = mpicxx
 FC   = mpif90
@@ -140,23 +176,13 @@ blas = mkl
 mkl_blacs = intelmpi
 gpu_backend = none
 ```
-4. Before running, make sure that environment variables are set right by running these commands:
-```sh
-source /opt/intel/compilers_and_libraries/linux/mkl/bin/mklvars.sh intel64
-source /opt/intel/bin/compilervars.sh intel64
-source /opt/intel/oneapi/setvars.sh
-export CPATH=$CPATH:/opt/intel/oneapi/mkl/2021.3.0/include
-export MKL_LIB_DIR=/opt/intel/compilers_and_libraries/linux/mkl/lib/intel64
-export MKL_INCLUDE_DIR=/opt/intel/compilers_and_libraries/linux/mkl/include
-export LD_LIBRARY_PATH=$MKL_LIB_DIR:$LD_LIBRARY_PATH
-export MKLROOT=/opt/intel/mkl
-```
+
 5. Compile
 ```sh
 make -j && sudo make install -j
 ```
 
-## Running Programs
+## Running Benchmarks
 
 ### NumPy with MKL
 Just make sure optimizations are on and import MKL before NumPy just to be safe:
@@ -263,34 +289,9 @@ NUMA node1 CPU(s):   32-63
 Flags:               fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ss ht syscall nx pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology cpuid pni pclmulqdq vmx ssse3 fma cx16 pcid sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand hypervisor lahf_lm abm 3dnowprefetch invpcid_single tpr_shadow vnmi ept vpid ept_ad fsgsbase bmi1 hle avx2 smep bmi2 erms invpcid rtm mpx avx512f avx512dq rdseed adx smap clflushopt clwb avx512cd avx512bw avx512vl xsaveopt xsavec xgetbv1 xsaves avx512_vnni md_clear arch_capabilities
 ```
 
-# Notes (Draft)
-
-For very large matrices in `summa.cpp`, I get the error:
-
-```
-[brian:64309] *** Process received signal ***
-[brian:64309] Signal: Segmentation fault (11)
-[brian:64309] Signal code: Address not mapped (1)
-[brian:64309] Failing at address: 0x564a0a728000
-[brian:64309] [ 0] /lib/x86_64-linux-gnu/libc.so.6(+0x3f040)[0x7fcf267c5040]
-[brian:64309] [ 1] ./summa(+0xba6e)[0x564a09bdaa6e]
-[brian:64309] [ 2] ./summa(+0xbf8c)[0x564a09bdaf8c]
-[brian:64309] [ 3] /lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xe7)[0x7fcf267a7bf7]
-[brian:64309] [ 4] ./summa(+0xb91a)[0x564a09bda91a]
-[brian:64309] *** End of error message ***
---------------------------------------------------------------------------
-mpirun noticed that process rank 0 with PID 0 on node brian exited on signal 11 (Segmentation fault).
---------------------------------------------------------------------------
-```
-
 
 limit benchmarks to n = 8GB
 
 Discussion about parallel LA packages
 https://stackoverflow.com/questions/10025866/parallel-linear-algebra-for-multicore-system
-
-
-NUMA nodes
-https://stackoverflow.com/questions/48072530/mpi-code-only-using-one-of-two-numa-nodes
-
 

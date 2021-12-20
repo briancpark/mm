@@ -6,17 +6,26 @@ import dimensions
 ns = dimensions.ns
 times = []
 for n in ns:
-    A = np.random.randn(n, n)
-    B = np.random.randn(n, n)
+    total = 0.0
+    for _ in range(10):
+        print("initializing")
+        A = np.random.randn(n, n)
+        B = np.random.randn(n, n)
 
-    start = time.time()
-    C = A @ B
-    end = time.time()
-    del A
-    del B
-    del C
-    times.append(end - start)
-    
-    time.sleep(1)
+        print("running cblas")
+        
+        time.sleep(3)
+        start = time.perf_counter()
+        C = A @ B
+        end = time.perf_counter()
+        time.sleep(3)
+        del A
+        del B
+        del C
+
+        total += end - start
+        
+    times.append(total / 10.0)
+        
 
 print(times)
